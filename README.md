@@ -1,24 +1,28 @@
 # Agent Code Review
 
-Review skills for code authored or substantially modified by AI coding agents. They apply to ordinary application code as well as agent systems, with a focus on requirements, observable behavior, and verifiable evidence.
+An agent skill for reviewing code authored or substantially modified by AI coding agents. It applies to ordinary application code as well as agent systems, with a focus on requirements, observable behavior, and verifiable evidence.
 
-These are instructions for a coding agent to follow while reviewing a repository. Reviews produce findings; implementation changes require a separate request.
+Start with [SKILL.md](SKILL.md). It provides the review workflow and loads supporting references when relevant, including CC/CRAP guidance for complexity analysis. Reviews produce findings; implementation changes require a separate request.
 
-## Choose a skill
+## Install
 
-| Skill | Entry point | Use it for |
-| --- | --- | --- |
-| **Agent Code Review** | [agent-code-review/SKILL.md](agent-code-review/SKILL.md) | Reviewing an AI-authored change against its requirements, integration paths, dependencies, and tests. |
-| **Complexity Review** | [SKILL.md](SKILL.md) | Inspecting complex logic and weak coverage using cyclomatic complexity (CC) and CRAP scores. |
+Install the **repository root** as one skill named `agent-code-review` using your agent runtime's skill installer. Keep `SKILL.md`, `agents/`, and `references/` together. The `evals/` directory is for maintaining and evaluating the skill and is optional for using it.
 
-**Start with `agent-code-review/SKILL.md` for a general review.** The root `SKILL.md` is the focused complexity companion. The main skill can use that companion when available and otherwise reports qualitative complexity and coverage limits.
+For Codex, an example request to the built-in installer is:
+
+```text
+Use $skill-installer to install the skill at the repository root of
+https://github.com/SEARO1/agent-code-review.
+```
+
+Other runtimes have their own installation and discovery mechanisms. See the [official Codex skills documentation](https://learn.chatgpt.com/docs/build-skills) for Codex setup. Cloning this repository into an arbitrary directory alone does not register the skill.
 
 ## Use it
 
 From a local checkout, give your coding agent the path to the main skill, the code to review, and the original requirements. For example:
 
 ```text
-Read /path/to/agent-code-review/agent-code-review/SKILL.md and follow it
+Read /path/to/agent-code-review/SKILL.md and follow it
 to review my staged and unstaged changes against HEAD.
 The acceptance criteria are in docs/specs/cancellation.md.
 Report findings and verification limits without editing the implementation.
@@ -33,7 +37,7 @@ Use $agent-code-review to review these AI-authored changes against
 the original requirements and report evidence-backed findings.
 ```
 
-Keep the `agent-code-review/` directory together when installing it: the entry point links to its `references/` files. Installation and automatic discovery depend on the agent runtime; cloning this repository alone does not register a skill.
+For a focused complexity review, ask the same skill to inspect CC, CRAP, or weak coverage. It reads [references/complexity-review.md](references/complexity-review.md) when needed; no second skill installation is required.
 
 ## What the review checks
 
@@ -46,7 +50,7 @@ Keep the `agent-code-review/` directory together when installing it: the entry p
 
 The reviewer derives counterexamples for high-risk behavior and distinguishes author-reported results from its own executions and source inspection. CC and CRAP help locate review targets; scores alone do not establish correctness or justify blocking a change.
 
-See the [inspection criteria](agent-code-review/references/review-checks.md) and [research rationale](agent-code-review/references/sources.md) for details.
+See the [inspection criteria](references/review-checks.md) and [research rationale](references/sources.md) for details.
 
 ## Expected output
 
@@ -64,7 +68,7 @@ python evals/check_cases.py
 
 The script executes the maintained Python snippets in [evals/cases.md](evals/cases.md). Its seven checks verify fixture behavior; they do not run or score a coding agent.
 
-The initial review evaluation used eight synthetic scenarios: five defect-bearing changes, two legitimate changes, and one case with insufficient evidence. Fresh reviewers using the original complexity skill and the new main skill both reached the expected judgments. **This evaluation demonstrates no detection improvement over the baseline.** It was one pass per variant, not a statistical benchmark or a test of large-repository navigation.
+The initial review evaluation used eight synthetic scenarios: five defect-bearing changes, two legitimate changes, and one case with insufficient evidence. Before consolidation into this single-skill layout, fresh reviewers using the original complexity skill and the main review skill both reached the expected judgments. **That evaluation demonstrated no detection improvement over the baseline.** It was one pass per variant, not a statistical benchmark or a test of large-repository navigation.
 
 For a new behavioral evaluation, give a fresh reviewer the chosen skill and raw cases, withholding [evals/results.md](evals/results.md) and `evals/check_cases.py` until grading. Compare misses, false positives, and evidence errors. The [evaluation record](evals/results.md) documents the initial results and remaining limits.
 
@@ -73,13 +77,13 @@ For a new behavioral evaluation, give a fresh reviewer the chosen skill and raw 
 ```text
 .
 ├── README.md
-├── SKILL.md                         # Complexity Review companion
-├── agent-code-review/
-│   ├── SKILL.md                     # Main review skill
-│   ├── agents/openai.yaml           # UI metadata and example invocation
-│   └── references/
-│       ├── review-checks.md
-│       └── sources.md
+├── SKILL.md                         # Single skill entry point
+├── agents/
+│   └── openai.yaml                  # UI metadata and example invocation
+├── references/
+│   ├── complexity-review.md         # CC/CRAP guidance, loaded when relevant
+│   ├── review-checks.md
+│   └── sources.md
 └── evals/
     ├── cases.md                     # Raw review scenarios
     ├── check_cases.py               # Executable fixture checks / answer key
